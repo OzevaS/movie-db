@@ -1,0 +1,166 @@
+.movie-item {
+  display: flex;
+  position: relative;
+  width: 455px;
+  height: 281px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+  font-family: sans-serif;
+  color: black;
+}
+
+@media screen and (max-width: 991.5px) {
+  .movie-item {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 576px) {
+  .movie-item {
+    height: unset;
+    display: block;
+  }
+}
+
+.movie-item:hover {
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.movie-item__img {
+  width: 183px;
+  height: 281px;
+}
+
+@media screen and (max-width: 576px) {
+  .movie-item__img {
+    width: 60px;
+    height: 91px;
+    float: left;
+    margin: 6px 10px;
+  }
+}
+
+.movie-item__content {
+  height: 100%;
+  max-width: 272px;
+  padding: 12px 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+@media screen and (max-width: 576px) {
+  .movie-item__content {
+    max-width: 387px;
+    padding: 4px 10px;
+    display: block;
+  }
+}
+
+.movie-item__header {
+  display: block;
+}
+
+.movie-item__body {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+@media screen and (max-width: 576px) {
+  .movie-item__header::after {
+    content: '';
+    display: block;
+    clear: both;
+  }
+}
+
+.movie-item__title {
+  margin: 0;
+  max-width: 85%;
+
+  font-style: normal;
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.movie-item__header * {
+  margin-bottom: 7px;
+}
+
+.movie-item__date {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 15px;
+  color: #827e7e;
+}
+
+.movie-item__genres {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.movie-item__genre {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 2px 4px;
+
+  background: #fafafa;
+  border: 1px solid #d9d9d9;
+  border-radius: 2px;
+
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 15px;
+}
+
+.movie-item__rate-movie {
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.movie-item__overview {
+  margin-bottom: auto;
+
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 22px;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.movie-item__rating {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  height: 30px;
+  right: 10px;
+  top: 10px;
+  border-radius: 100%;
+  border: 3px solid #fff;
+}
+
+.movie-item__rating--high {
+  border-color: #66e900;
+}
+
+.movie-item__rating--good {
+  border-color: #e9d100;
+}
+
+.movie-item__rating--normal {
+  border-color: #e97e00;
+}
+
+.movie-item__rating--bad {
+  border-color: #e90000;
+}
+
+.clearfix {
+  clear: both;
+  display: block;
+}

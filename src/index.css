@@ -1,0 +1,10 @@
+body {
+  background: #e5e5e5;
+  box-sizing: border-box;
+}
+
+.movie-db-app__pagination {
+  width: max-content;
+  margin: 0 auto;
+  margin-top: 20px;
+}
