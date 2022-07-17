@@ -1,4 +1,4 @@
-import { IGenre, IMovie, ISavedMovie } from '../types';
+import { IGenre, IMovie, IMoviesInfo, ISavedMovie } from '../types';
 
 export default class MovieDBService {
   private _apiBase = 'https://api.themoviedb.org';
@@ -119,7 +119,7 @@ export default class MovieDBService {
     return `https://image.tmdb.org/t/p/w500${posterPath}`;
   };
 
-  searchMovie = async (query: string, page: number) => {
+  searchMovie = async (query: string, page: number): Promise<IMoviesInfo | null> => {
     if (!this._createdSession) return null;
 
     const urlRequest = this.getURLRequest('/search/movie');
@@ -128,10 +128,16 @@ export default class MovieDBService {
 
     const body = await this.getResource(urlRequest);
 
-    return body.results.map(this._transformMovie);
+    const { results, total_pages: totalPages } = body;
+    const movies = results.map(this._transformMovie);
+
+    return {
+      movies,
+      totalPages,
+    };
   };
 
-  getRatedMovies = async (page: number) => {
+  getRatedMovies = async (page: number): Promise<IMoviesInfo | null> => {
     if (!this._createdSession) return null;
 
     const urlRequest = this.getURLRequest(`/guest_session/${this._sessionId}/rated/movies`);
@@ -139,11 +145,17 @@ export default class MovieDBService {
 
     const body = await this.getResource(urlRequest);
 
-    return body.results.map((item: any) => {
+    const { results, total_pages: totalPages } = body;
+    const movies = results.map((item: any) => {
       const movie = this._transformMovie(item);
       movie.rating = item.rating;
       return movie;
     });
+
+    return {
+      movies,
+      totalPages,
+    };
   };
 
   rateMovie = async (movieId: number, rating: number) => {

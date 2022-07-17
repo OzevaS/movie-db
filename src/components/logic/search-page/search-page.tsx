@@ -1,16 +1,17 @@
-import React from 'react';
+/* eslint-disable @typescript-eslint/no-use-before-define */
+/* eslint-disable @typescript-eslint/no-shadow */
+import React, { FC, useCallback, useEffect } from 'react';
 import { Input, Pagination } from 'antd';
 import ErrorBoundary from 'antd/lib/alert/ErrorBoundary';
 
 import './search-page.css';
 
-import { IMovie } from '../../../types';
-import { SwapiServiceConsumer } from '../swapi-service-context';
-import { MovieListWithData } from '../sw-components';
+import MovieDBServiceContext from '../movie-db-service-context';
+import { useRequest } from '../../hooks';
+import { MovieListData } from '../../hoc/hoc-components';
 
 interface SearchPageState {
   page: number;
-  totalPages: number;
   query: string;
 }
 
@@ -18,97 +19,75 @@ interface SearchPageProps {
   debounceTime?: number;
 }
 
-class SearchPage extends React.Component<SearchPageProps, SearchPageState> {
-  state = {
-    page: 1,
-    totalPages: 0,
-    query: '',
+const SearchPage: FC<SearchPageProps> = ({ debounceTime }) => {
+  const { searchMovie } = React.useContext(MovieDBServiceContext);
+
+  const [page, setPage] = React.useState<SearchPageState['page']>(1);
+  const [query, setQuery] = React.useState<SearchPageState['query']>('');
+
+  const onChangePage = (page: number) => {
+    setPage(page);
   };
 
-  static defaultProps = {
-    debounceTime: 2000,
+  useEffect(() => {
+    setPage(1);
+  }, [query]);
+
+  const onSearchMovies = useCallback(
+    debounce((query: string) => {
+      if (!query) return;
+
+      setQuery(query);
+    }, debounceTime as number),
+    [debounceTime]
+  );
+
+  const request = useCallback(() => {
+    if (!query)
+      return new Promise((resolve) => {
+        resolve(null);
+      });
+    return searchMovie(query, page);
+  }, [query, page, searchMovie]);
+
+  const dataState = useRequest(request);
+
+  const totalPages = dataState.data?.totalPages || 0;
+
+  return (
+    <ErrorBoundary>
+      <section className="movie-db-app__search">
+        <Input
+          className="search-movie"
+          onChange={(e) => onSearchMovies(e.target.value)}
+          placeholder="type to search..."
+        />
+        <MovieListData {...dataState} />
+        <Pagination
+          className="movie-db-app__pagination"
+          defaultCurrent={page}
+          total={totalPages}
+          onChange={onChangePage}
+        />
+      </section>
+    </ErrorBoundary>
+  );
+};
+
+SearchPage.defaultProps = {
+  debounceTime: 2000,
+};
+
+function debounce(fn: (...args: any) => void, ms: number) {
+  let currentTimeout: NodeJS.Timeout | null = null;
+
+  return function wrapper(this: any, ...rest: any) {
+    clearTimeout(currentTimeout as NodeJS.Timeout);
+
+    currentTimeout = setTimeout(() => {
+      fn.apply(this, rest);
+    }, ms);
   };
-
-  searchMovie!: (query: string, page: number) => Promise<Array<IMovie>>;
-
-  onSearchMovies!: (this: SearchPage, ...rest: any[]) => void;
-
-  constructor(props: SearchPageProps) {
-    super(props);
-
-    const { debounceTime } = props;
-    this.onSearchMovies = this.debounce(this._onSearchMovies, debounceTime as number);
-  }
-
-  shouldComponentUpdate(nextProps: SearchPageProps, nextState: SearchPageState) {
-    const { query } = this.state;
-    const { query: nextQuery } = nextState;
-
-    return query !== nextQuery;
-  }
-
-  debounce = (fn: (...args: any[]) => void, ms: number) => {
-    let currentTimeout: NodeJS.Timeout | null = null;
-
-    return function wrapper(this: SearchPage, ...rest: any[]) {
-      clearTimeout(currentTimeout as NodeJS.Timeout);
-
-      currentTimeout = setTimeout(() => {
-        fn.apply(this, rest);
-      }, ms);
-    };
-  };
-
-  _onSearchMovies = (query: string) => {
-    if (!query) return;
-
-    this.setState({ query });
-  };
-
-  onPageChange = (page: number) => {
-    this.setState({ page });
-  };
-
-  getMovies = () => {
-    const { query, page } = this.state;
-
-    if (!query) return Promise.resolve([]);
-
-    const promise = this.searchMovie(query, page);
-
-    return promise;
-  };
-
-  render() {
-    const { totalPages } = this.state;
-
-    return (
-      <ErrorBoundary>
-        <SwapiServiceConsumer>
-          {({ searchMovie }) => {
-            this.searchMovie = searchMovie;
-
-            return (
-              <section className="movie-db-app__search">
-                <Input
-                  className="search-movie"
-                  onChange={(e) => this.onSearchMovies(e.target.value)}
-                  placeholder="type to search..."
-                />
-                <MovieListWithData promise={this.getMovies()} />
-                <Pagination
-                  className="movie-db-app__pagination"
-                  defaultCurrent={1}
-                  total={totalPages}
-                  onChange={this.onPageChange}
-                />
-              </section>
-            );
-          }}
-        </SwapiServiceConsumer>
-      </ErrorBoundary>
-    );
-  }
 }
 
 export default SearchPage;

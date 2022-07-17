@@ -1,57 +1,47 @@
-import React from 'react';
+/* eslint-disable @typescript-eslint/no-shadow */
+import React, { FC, useCallback } from 'react';
 import ErrorBoundary from 'antd/lib/alert/ErrorBoundary';
 import { Pagination } from 'antd';
 
 import './rated-page.css';
 
-import { IMovie } from '../../../types';
-import { SwapiServiceConsumer } from '../swapi-service-context';
-import { MovieListWithData } from '../sw-components';
+import MovieDBServiceContext from '../movie-db-service-context';
+import { useRequest } from '../../hooks';
+import { MovieListData } from '../../hoc/hoc-components';
 
 interface RatedPageState {
   page: number;
+  totalPages: number;
 }
 
-class RatedPage extends React.Component<Record<string, never>, RatedPageState> {
-  state = {
-    page: 1,
+const RatedPage: FC = () => {
+  const { getRatedMovies } = React.useContext(MovieDBServiceContext);
+
+  const [page, setPage] = React.useState<RatedPageState['page']>(1);
+
+  const onChangePage = (page: number) => {
+    setPage(page);
   };
 
-  getRatedMovies!: (page: number) => Promise<Array<IMovie>>;
+  const request = useCallback(() => {
+    return getRatedMovies(page);
+  }, [page, getRatedMovies]);
 
-  onPageChange = (page: number) => {
-    this.setState({ page });
-  };
+  const dataState = useRequest(request);
 
-  getMovies = () => {
-    const { page } = this.state;
+  const totalPages = dataState.data?.totalPages || 0;
 
-    return this.getRatedMovies(page);
-  };
-
-  render() {
-    return (
-      <ErrorBoundary>
-        <SwapiServiceConsumer>
-          {({ getRatedMovies }) => {
-            this.getRatedMovies = getRatedMovies;
-
-            return (
-              <section className="movie-db-app__search">
-                <MovieListWithData promise={this.getMovies()} />
-                <Pagination
-                  className="movie-db-app__pagination"
-                  defaultCurrent={1}
-                  total={50}
-                  onChange={this.onPageChange}
-                />
-              </section>
-            );
-          }}
-        </SwapiServiceConsumer>
-      </ErrorBoundary>
-    );
-  }
-}
+  return (
+    <ErrorBoundary>
+      <MovieListData {...dataState} />
+      <Pagination
+        className="movie-db-app__pagination"
+        defaultCurrent={page}
+        total={totalPages}
+        onChange={onChangePage}
+      />
+    </ErrorBoundary>
+  );
+};
 
 export default RatedPage;

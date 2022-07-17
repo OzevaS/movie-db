@@ -21,6 +21,12 @@ body {
   margin-bottom: 10px;
 }
 
+.movie-db-app__pagination {
+  width: max-content;
+  margin: 0 auto;
+  margin-top: 20px;
+}
+
 .ant-pagination li:hover {
   background: #1890ff !important;
   border-radius: 20%;

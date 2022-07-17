@@ -19,4 +19,15 @@ interface ISavedMovie {
   rating: number;
 }
 
-export type { IMovie, IGenre, ISavedMovie };
+interface IMoviesInfo {
+  movies: IMovie[];
+  totalPages: number;
+}
+
+interface IDataState {
+  data: any;
+  loading: boolean;
+  error: Error | null;
+}
+
+export type { IMovie, IGenre, ISavedMovie, IDataState, IMoviesInfo };
