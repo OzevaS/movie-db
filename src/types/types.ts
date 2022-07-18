@@ -6,7 +6,8 @@ interface IMovie {
   overview: string;
   genres: number[];
   posterPath: string;
-  rating: number;
+  globalRating: number;
+  userRating: number;
 }
 
 interface IGenre {
@@ -16,7 +17,7 @@ interface IGenre {
 
 interface ISavedMovie {
   id: number;
-  rating: number;
+  userRating: number;
 }
 
 interface IMoviesInfo {

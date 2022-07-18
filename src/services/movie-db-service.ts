@@ -40,13 +40,13 @@ export default class MovieDBService {
   }
 
   private saveMovie(movie: ISavedMovie) {
-    const { id, rating } = movie;
+    const { id, userRating } = movie;
 
-    if (rating === undefined) return;
+    if (userRating === undefined) return;
 
     const movieToSave: ISavedMovie = {
       id,
-      rating,
+      userRating,
     };
 
     const savedMovies = this.getSavedMovies();
@@ -96,12 +96,12 @@ export default class MovieDBService {
   }
 
   _transformMovie = (movie: any): IMovie => {
-    let rating = 0;
+    let userRating = 0;
 
     const savedMovies = this.getSavedMovies();
     if (savedMovies) {
       const index = savedMovies.findIndex((m: IMovie) => m.id === movie.id);
-      if (index !== -1) rating = savedMovies[index].rating;
+      if (index !== -1) userRating = savedMovies[index].userRating;
     }
 
     return {
@@ -111,7 +111,8 @@ export default class MovieDBService {
       overview: movie.overview,
       genres: movie.genre_ids,
       posterPath: this._transformPosterPath(movie.poster_path),
-      rating,
+      globalRating: movie.vote_average.toFixed(1),
+      userRating,
     };
   };
 
@@ -146,11 +147,7 @@ export default class MovieDBService {
     const body = await this.getResource(urlRequest);
 
     const { results, total_pages: totalPages } = body;
-    const movies = results.map((item: any) => {
-      const movie = this._transformMovie(item);
-      movie.rating = item.rating;
-      return movie;
-    });
+    const movies = results.map(this._transformMovie);
 
     return {
       movies,
@@ -158,20 +155,20 @@ export default class MovieDBService {
     };
   };
 
-  rateMovie = async (movieId: number, rating: number) => {
+  rateMovie = async (movieId: number, userRating: number) => {
     const urlRequest = this.getURLRequest(`/movie/${movieId}/rating`);
     urlRequest.searchParams.set('guest_session_id', this._sessionId);
-    urlRequest.searchParams.set('value', String(rating));
+    urlRequest.searchParams.set('value', String(userRating));
 
     fetch(urlRequest, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ value: rating }),
+      body: JSON.stringify({ value: userRating }),
     }).then((res) => {
       if (!res.ok) throw new Error(`Could not rate movie ${movieId}`);
-      this.saveMovie({ id: movieId, rating });
+      this.saveMovie({ id: movieId, userRating });
     });
   };
 

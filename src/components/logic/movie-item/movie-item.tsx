@@ -29,15 +29,15 @@ function sliceOverview(text: string, max: number) {
 }
 
 const MovieItem: FC<MovieItemProps> = ({ movie }) => {
-  const { rating: ratingMovie } = movie;
+  const { userRating, globalRating } = movie;
 
-  const [ratingState, setRatingState] = React.useState<MovieItemState['rating']>(ratingMovie);
+  const [userRatingState, setUserRatingState] = React.useState<MovieItemState['rating']>(userRating);
 
   const { rateMovie, getGenre } = React.useContext(MovieDBServiceContext);
 
   const onRate = useCallback(
     (id: number, value: number) => {
-      setRatingState(value);
+      setUserRatingState(value);
       rateMovie(id, value);
     },
     [rateMovie]
@@ -45,17 +45,26 @@ const MovieItem: FC<MovieItemProps> = ({ movie }) => {
 
   const genresArray = useMemo((): string[] => movie.genres.map(getGenre), [movie.genres, getGenre]);
 
-  return <MovieItemView movie={movie} rating={ratingState} genresArray={genresArray} rateMovie={onRate} />;
+  return (
+    <MovieItemView
+      movie={movie}
+      userRating={userRatingState}
+      globalRating={globalRating}
+      genresArray={genresArray}
+      rateMovie={onRate}
+    />
+  );
 };
 
 interface MovieItemViewProps {
   movie: IMovie;
-  rating: number;
+  userRating: number;
+  globalRating: number;
   rateMovie: (id: number, value: number) => void;
   genresArray: string[];
 }
 
-const MovieItemView: FC<MovieItemViewProps> = ({ movie, rating, rateMovie, genresArray }) => {
+const MovieItemView: FC<MovieItemViewProps> = ({ movie, userRating, globalRating, rateMovie, genresArray }) => {
   const { id, title, releaseDate, posterPath, overview } = movie;
 
   const formatDate = useMemo(() => format(new Date(releaseDate), 'MMMM dd, yyyy'), [releaseDate]);
@@ -70,12 +79,12 @@ const MovieItemView: FC<MovieItemViewProps> = ({ movie, rating, rateMovie, genre
     [genresArray]
   );
 
-  const classNameRating = `movie-item__rating ${
-    rating >= 7
+  const classNameGlobalRating = `movie-item__rating ${
+    globalRating >= 7
       ? 'movie-item__rating--high'
-      : rating >= 5
+      : globalRating >= 5
       ? 'movie-item__rating--good'
-      : rating >= 3
+      : globalRating >= 3
       ? 'movie-item__rating--normal'
       : 'movie-item__rating--bad'
   }`;
@@ -88,7 +97,7 @@ const MovieItemView: FC<MovieItemViewProps> = ({ movie, rating, rateMovie, genre
           <h3 className="movie-item__title">{title}</h3>
           <p className="movie-item__date">{formatDate}</p>
           <ul className="movie-item__genres">{genresList}</ul>
-          <div className={classNameRating}>{rating}</div>
+          <div className={classNameGlobalRating}>{globalRating}</div>
         </div>
         <div className="movie-item__body">
           <p className="movie-item__overview">{sliceOverview(overview, 150)}</p>
@@ -96,7 +105,7 @@ const MovieItemView: FC<MovieItemViewProps> = ({ movie, rating, rateMovie, genre
             className="movie-item__rate-movie"
             allowHalf
             count={10}
-            value={rating}
+            value={userRating}
             onChange={(value) => rateMovie(id, value)}
           />
         </div>
